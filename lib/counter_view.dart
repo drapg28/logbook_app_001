@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'counter_controller.dart';
 
 class CounterView extends StatefulWidget {
@@ -9,72 +10,147 @@ class CounterView extends StatefulWidget {
 }
 
 class _CounterViewState extends State<CounterView> {
-  final CounterController _controller = CounterController();
-  final TextEditingController _stepInput = TextEditingController(text: "1");
+  final TextEditingController _stepController = TextEditingController(text: "1");
+
+  @override
+  void dispose() {
+    _stepController.dispose();
+    super.dispose();
+  }
+
+  void _showResetDialog(CounterController controller) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Konfirmasi Reset"),
+          content: const Text("Yakin ingin menghapus semua hitungan dan riwayat?"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Batal"),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                controller.reset();
+                Navigator.pop(context);
+                
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Data berhasil dibersihkan!"),
+                    behavior: SnackBarBehavior.floating,
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red[50]),
+              child: const Text("Ya, Reset", style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    final controller = context.watch<CounterController>();
+
     return Scaffold(
-      appBar: AppBar(title: const Text("History Logger : task 2")),
+      appBar: AppBar(
+        title: const Text("Logbook Counter Samudra"),
+        centerTitle: true,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            Text("Total Counter:", style: TextStyle(color: Colors.grey[700])),
+            // --- DISPLAY COUNTER UTAMA ---
+            Text("Total Hitungan:", style: TextStyle(color: Colors.grey[700])),
             Text(
-              "${_controller.counter}",
-              style: const TextStyle(fontSize: 80, fontWeight: FontWeight.bold),
+              "${controller.counter}",
+              style: const TextStyle(
+                fontSize: 80, 
+                fontWeight: FontWeight.bold,
+                color: Colors.blueAccent,
+              ),
             ),
 
             const SizedBox(height: 20),
 
-            // Input Step (Task 1)
             TextField(
-              controller: _stepInput,
+              controller: _stepController,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
-                labelText: "Masukkan Nilai Step",
+                labelText: "Nilai Step (Lompatan)",
                 border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.bolt),
               ),
-              onChanged: (v) => _controller.setStep(int.tryParse(v) ?? 1),
+              onChanged: (value) {
+                final parsed = int.tryParse(value);
+                controller.setStep(parsed ?? 0);
+              },
             ),
 
             const SizedBox(height: 30),
 
-            // Daftar Riwayat (Task 2)
+            // --- HEADER RIWAYAT ---
             const Align(
               alignment: Alignment.centerLeft,
-              child: Text("Riwayat (Maksimal 5):", style: TextStyle(fontWeight: FontWeight.bold)),
+              child: Text(
+                "5 Aktivitas Terakhir:", 
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
-            const Divider(),
+            const Divider(thickness: 1),
+
+            // --- DAFTAR RIWAYAT ---
             Expanded(
               child: ListView.builder(
-                itemCount: _controller.history.length,
-                itemBuilder: (context, index) => ListTile(
-                  leading: const Icon(Icons.history),
-                  title: Text(_controller.history[index]),
-                ),
+                itemCount: controller.history.length,
+                itemBuilder: (context, index) {
+                  final log = controller.history[index];
+                
+                  final isIncrement = log.type == ActionType.increment;
+                  final actionStr = isIncrement ? "Tambah" : "Kurang";
+                  final itemColor = isIncrement ? Colors.green : Colors.red;
+                  
+                  final time = "${log.timestamp.hour}:${log.timestamp.minute.toString().padLeft(2, '0')}";
+
+                  return ListTile(
+                    leading: Icon(Icons.history, color: itemColor),
+                    title: Text(
+                      "$actionStr ${log.value}",
+                      style: TextStyle(color: itemColor, fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text("Dilakukan pada jam $time"),
+                  );
+                },
               ),
             ),
 
-            // Tombol Navigasi
+            // --- TOMBOL AKSI  ---
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                ElevatedButton(
-                  onPressed: () => setState(() => _controller.decrement()),
-                  child: const Icon(Icons.remove),
+                IconButton.filled(
+                  onPressed: controller.decrement,
+                  icon: const Icon(Icons.remove),
+                  style: IconButton.styleFrom(backgroundColor: Colors.red),
                 ),
-                ElevatedButton(
-                  onPressed: () => setState(() => _controller.reset()),
-                  child: const Text("Reset"),
+                ElevatedButton.icon(
+                  onPressed: () => _showResetDialog(controller),
+                  icon: const Icon(Icons.refresh),
+                  label: const Text("RESET"),
+                  style: ElevatedButton.styleFrom(foregroundColor: Colors.red),
                 ),
-                ElevatedButton(
-                  onPressed: () => setState(() => _controller.increment()),
-                  child: const Icon(Icons.add),
+                IconButton.filled(
+                  onPressed: controller.increment,
+                  icon: const Icon(Icons.add),
+                  style: IconButton.styleFrom(backgroundColor: Colors.green),
                 ),
               ],
-            )
+            ),
           ],
         ),
       ),

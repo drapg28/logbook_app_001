@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
-import 'counter_view.dart'; // Mengimpor 'wajah' yang baru kita buat
+import 'package:provider/provider.dart';
+import 'counter_controller.dart';
+import 'counter_view.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => CounterController(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -10,15 +17,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'LogBook : t2 ver',
-      debugShowCheckedModeBanner: false, // Biar gak ada tulisan 'Debug' di pojok HP
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
-      ),
-      // Di sini kuncinya: kita panggil CounterView() sebagai halaman utama
-      home: const CounterView(), 
+    return const MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: CounterView(),
     );
   }
 }

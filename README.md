@@ -1,16 +1,3 @@
-# logbook_app_001
+Prinsip SRP (Single Responsibility Principle) ngebantu banget pas aku nambahin fitur History Logger kemaren. Soalnya, logika kodenya udah dipisah-pisah dari awal, jadi pas mau nambahin fitur buat nyatet riwayat (list), aku cuma perlu fokus ngutak-ngatik file Controller doang tanpa perlu pusing mikirin kodenya bakal ngerusak tampilan (View).
 
-A new Flutter project.
-
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Karena setiap file punya tanggung jawabnya masing-masing, kodenya jadi lebih rapi dan nggak numpuk jadi satu (spaghetti code). Pas ada revisi soal limit 5 data atau format waktunya, aku udah tau pasti bagian mana yang harus diubah tanpa harus nyari-nyari di antara tumpukan widget UI. Intinya mah, SRP bikin kodingan lebih terstruktur, gampang di-maintain, dan nggak bikin pusing pas fitur aplikasinya makin nambah banyak.
