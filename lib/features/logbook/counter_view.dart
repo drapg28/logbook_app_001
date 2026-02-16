@@ -148,7 +148,7 @@ class _CounterViewState extends State<CounterView> {
                     contentPadding: EdgeInsets.zero,
                     leading: Icon(Icons.history, color: itemColor, size: 20),
                     title: Text(
-                      "${isIncrement ? 'Tambah' : 'Kurang'} ${log.value}",
+                      "User ${log.username} ${isIncrement ? 'menambah' : 'mengurang'} ${log.value}",
                       style: TextStyle(
                         color: itemColor, 
                         fontWeight: FontWeight.bold
@@ -169,7 +169,7 @@ class _CounterViewState extends State<CounterView> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   IconButton.filled(
-                    onPressed: controller.decrement,
+                     onPressed: () => controller.decrement(widget.username),
                     icon: const Icon(Icons.remove, size: 30),
                     style: IconButton.styleFrom(backgroundColor: Colors.red),
                   ),
@@ -183,7 +183,7 @@ class _CounterViewState extends State<CounterView> {
                     ),
                   ),
                   IconButton.filled(
-                    onPressed: controller.increment,
+                    onPressed: () => controller.increment(widget.username),
                     icon: const Icon(Icons.add, size: 30),
                     style: IconButton.styleFrom(backgroundColor: Colors.green),
                   ),

@@ -6,17 +6,20 @@ import 'dart:convert';
 enum ActionType { increment, decrement }
 
 class LogEntry {
-  final ActionType type;
+  final String username;
+  ActionType type;
   final int value;
   final DateTime timestamp;
 
   LogEntry({
+    required this.username,
     required this.type,
     required this.value,
     required this.timestamp,
   });
 
   Map<String, dynamic> toJson() => {
+  'u': username,
   'v': value, 
   't': timestamp.toIso8601String(), 
   'ty': type.index
@@ -24,6 +27,7 @@ class LogEntry {
 };
 
 factory LogEntry.fromJson(Map<String, dynamic> json) => LogEntry(
+  username: json['u'] ?? 'Unknown',
   value: json['v'],
   timestamp: DateTime.parse(json['t']),
   type: ActionType.values[json['ty']],
@@ -57,23 +61,21 @@ class CounterController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void increment() {
-    if (_step == 0) return; 
-    
-    _counter += _step;
-    _addLog(ActionType.increment, _step);
-    notifyListeners();
-    _saveData();
-  }
+  void increment(String username) {
+  if (_step == 0) return; 
+  _counter += _step;
+  _addLog(ActionType.increment, _step, username);
+  notifyListeners();
+  _saveData();
+}
 
-  void decrement() {
-    if (_step == 0) return;
-
-    _counter -= _step;
-    _addLog(ActionType.decrement, _step);
-    notifyListeners();
-    _saveData();
-  }
+void decrement(String username) {
+  if (_step == 0) return;
+  _counter -= _step;
+  _addLog(ActionType.decrement, _step, username);
+  notifyListeners();
+  _saveData();
+}
 
   void reset() {
     _counter = 0;
@@ -82,10 +84,16 @@ class CounterController extends ChangeNotifier {
     _saveData();
   }
 
-  void _addLog(ActionType type, int value) {
-    _history.insert(0, LogEntry(type: type, value: value, timestamp: DateTime.now()));
-    if (_history.length > 5) _history.removeLast(); 
-  }
+  void _addLog(ActionType type, int value, String username) {
+  _history.insert(0, LogEntry(
+    username: username, // Masukkan nama user
+    type: type, 
+    value: value, 
+    timestamp: DateTime.now()
+  ));
+  if (_history.length > 5) _history.removeLast(); 
+  _saveData();
+}
 
   Future<void> _saveData() async {
   final prefs = await SharedPreferences.getInstance();
