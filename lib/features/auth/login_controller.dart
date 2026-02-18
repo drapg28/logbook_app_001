@@ -1,6 +1,7 @@
 import 'dart:async';
+import 'package:flutter/material.dart';
 
-class LoginController {
+class LoginController extends ChangeNotifier {
   final Map<String, String> _users = {
     "admin": "123",
     "samudra": "suiseikeren",

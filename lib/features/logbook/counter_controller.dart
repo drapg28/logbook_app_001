@@ -37,12 +37,26 @@ factory LogEntry.fromJson(Map<String, dynamic> json) => LogEntry(
 class CounterController extends ChangeNotifier {
   int _counter = 0;
   int _step = 1; 
- 
   List<LogEntry> _history = [];
+  String _currentUsername = "";
 
   int get counter => _counter;
   int get step => _step;
   List<LogEntry> get history => List.unmodifiable(_history);
+
+  Future<void> initUser(String username) async {
+      _currentUsername = username;
+      final prefs = await SharedPreferences.getInstance();
+      
+      _counter = prefs.getInt('${_currentUsername}_last_val') ?? 0;
+      
+      List<String>? logs = prefs.getStringList('${_currentUsername}_history');
+      if (logs != null) {
+        _history = logs.map((e) => LogEntry.fromJson(jsonDecode(e))).toList();
+      }
+      notifyListeners();
+    }
+
 
   CounterController() {
     loadData(); 
@@ -86,7 +100,7 @@ void decrement(String username) {
 
   void _addLog(ActionType type, int value, String username) {
   _history.insert(0, LogEntry(
-    username: username, // Masukkan nama user
+    username: username,
     type: type, 
     value: value, 
     timestamp: DateTime.now()
@@ -96,10 +110,11 @@ void decrement(String username) {
 }
 
   Future<void> _saveData() async {
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.setInt('last_val', _counter);
-  List<String> logs = _history.map((e) => jsonEncode(e.toJson())).toList();
-  await prefs.setStringList('history', logs);
+    if (_currentUsername.isEmpty) return;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('${_currentUsername}_last_val', _counter);
+    List<String> logs = _history.map((e) => jsonEncode(e.toJson())).toList();
+    await prefs.setStringList('${_currentUsername}_history', logs);
   }
 
 Future<void> loadData() async {

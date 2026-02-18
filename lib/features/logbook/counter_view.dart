@@ -15,6 +15,22 @@ class _CounterViewState extends State<CounterView> {
   final TextEditingController _stepController = TextEditingController(text: "1");
 
   @override
+  void initState() {
+    super.initState();
+    Future.microtask(() => 
+      context.read<CounterController>().initUser(widget.username)
+    );
+  }
+
+  String _getGreeting() {
+    var hour = DateTime.now().hour;
+    if (hour >= 5 && hour < 11) return "Selamat Pagi";
+    if (hour >= 11 && hour < 15) return "Selamat Siang";
+    if (hour >= 15 && hour < 18) return "Selamat Sore";
+    return "Selamat Malam";
+  }
+
+  @override
   void dispose() {
     _stepController.dispose();
     super.dispose();
@@ -82,7 +98,7 @@ class _CounterViewState extends State<CounterView> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text("Logbook Counter : ${widget.username}"), 
+        title: Text("${_getGreeting()}, ${widget.username}"), 
         centerTitle: true,
         elevation: 0,
         backgroundColor: Colors.white,
@@ -169,7 +185,7 @@ class _CounterViewState extends State<CounterView> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   IconButton.filled(
-                     onPressed: () => controller.decrement(widget.username),
+                    onPressed: () => controller.decrement(widget.username),
                     icon: const Icon(Icons.remove, size: 30),
                     style: IconButton.styleFrom(backgroundColor: Colors.red),
                   ),
