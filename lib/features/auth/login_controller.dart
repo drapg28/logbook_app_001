@@ -24,9 +24,11 @@ class LoginController extends ChangeNotifier {
   bool checkLockout() {
     if (_failedAttempts >= 3) {
       isLocked = true;
+      notifyListeners();
       Timer(const Duration(seconds: 10), () {
         isLocked = false;
         _failedAttempts = 0;
+        notifyListeners();
       });
       return true;
     }

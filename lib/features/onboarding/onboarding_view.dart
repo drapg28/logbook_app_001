@@ -49,7 +49,6 @@ class _OnboardingViewState extends State<OnboardingView> {
                 style: TextStyle(fontSize: 16, color: Colors.grey[600]),
               ),
               const SizedBox(height: 40),
-              // Indicator
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: List.generate(3, (i) => Container(
