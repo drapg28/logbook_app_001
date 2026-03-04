@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'features/logbook/log_controller.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:logbook_app_001/features/onboarding/onboarding_view.dart';
 
-void main() {
-  runApp(
-    ChangeNotifierProvider(
-      create: (_) => LogController(),
-      child: const MyApp(),
-    ),
-  );
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Load ENV saja di sini (cepat), koneksi DB dipindah ke LogView agar tidak blackscreen
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    debugPrint("ENV Load Error: $e");
+  }
+
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -17,9 +20,14 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
+      title: 'Logbook Cloud Samudra',
       debugShowCheckedModeBanner: false,
-      home: OnboardingView(),
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueAccent),
+        useMaterial3: true,
+      ),
+      home: const OnboardingView(), 
     );
   }
 }
