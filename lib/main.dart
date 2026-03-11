@@ -4,8 +4,6 @@ import 'package:logbook_app_001/features/onboarding/onboarding_view.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Load ENV saja di sini (cepat), koneksi DB dipindah ke LogView agar tidak blackscreen
   try {
     await dotenv.load(fileName: ".env");
   } catch (e) {

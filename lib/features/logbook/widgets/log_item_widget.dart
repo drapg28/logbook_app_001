@@ -1,54 +1,163 @@
 import 'package:flutter/material.dart';
-import '../models/log_models.dart';
+import 'package:logbook_app_001/features/logbook/models/log_models.dart';
 
 class LogItemWidget extends StatelessWidget {
   final LogModel log;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
-  const LogItemWidget({super.key, required this.log, required this.onEdit, required this.onDelete});
+  const LogItemWidget({
+    super.key,
+    required this.log,
+    required this.onEdit,
+    required this.onDelete,
+  });
 
-  // Warna kategori [cite: 194]
-  Color _getCategoryColor() {
+  Color _getCardColor() {
     switch (log.category) {
-      case "Pekerjaan": return const Color.fromARGB(255, 255, 252, 104)!;
-      case "Pribadi": return const Color.fromARGB(255, 126, 230, 134)!;
-      case "Urgent": return const Color.fromARGB(255, 253, 109, 131)!;
-      default: return Colors.grey[100]!;
+      case 'Pekerjaan':
+      case 'Proyek':
+        return const Color(0xFFFFF176);
+      case 'Pribadi':
+        return const Color(0xFF81C784);
+      case 'Urgent':
+        return const Color(0xFFE57373);
+      default:
+        return const Color(0xFFE0E0E0);
     }
   }
 
-  String _formatDateTime(String dateStr) {
-    DateTime dt = DateTime.parse(dateStr);
-    return "${dt.day}/${dt.month}/${dt.year} | ${dt.hour}:${dt.minute.toString().padLeft(2, '0')}";
+  Color _getTextColor() {
+    switch (log.category) {
+      case 'Urgent':
+        return Colors.white;
+      default:
+        return Colors.black87;
+    }
+  }
+
+  String _formatShortDate(String dateStr) {
+    try {
+      final DateTime dt = DateTime.parse(dateStr);
+      final Duration diff = DateTime.now().difference(dt);
+
+      if (diff.inSeconds < 60) return 'Baru saja';
+      if (diff.inMinutes < 60) return '${diff.inMinutes} menit yang lalu';
+      if (diff.inHours < 24) return '${diff.inHours} jam yang lalu';
+      if (diff.inDays < 7) return '${diff.inDays} hari yang lalu';
+
+      final String time =
+          '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+      return '${dt.day}/${dt.month}/${dt.year} | $time';
+    } catch (_) {
+      return dateStr;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      color: _getCategoryColor(),
-      shape: RoundedRectangleBorder(
+    final Color cardColor = _getCardColor();
+    final Color textColor = _getTextColor();
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+      decoration: BoxDecoration(
+        color: cardColor,
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey[200]!),
+        boxShadow: [
+          BoxShadow(
+            color: cardColor.withOpacity(0.5),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-      child: ListTile(
-        title: Text(log.title, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(14, 12, 6, 12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text(log.description),
-            const SizedBox(height: 5),
-            Text(_formatDateTime(log.date), style: const TextStyle(fontSize: 11, color: Colors.black54)),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    log.title,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: textColor,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 3),
+                  if (log.description.isNotEmpty)
+                    Text(
+                      log.description,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: textColor.withOpacity(0.85),
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  const SizedBox(height: 5),
+                  Text(
+                    _formatShortDate(log.date),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: textColor.withOpacity(0.65),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _ActionButton(
+                  icon: Icons.edit,
+                  color: Colors.blue.shade700,
+                  onTap: onEdit,
+                ),
+                const SizedBox(width: 4),
+                _ActionButton(
+                  icon: Icons.delete,
+                  color: Colors.red.shade700,
+                  onTap: onDelete,
+                ),
+              ],
+            ),
           ],
         ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(icon: const Icon(Icons.edit, color: Colors.blue), onPressed: onEdit),
-            IconButton(icon: const Icon(Icons.delete, color: Colors.red), onPressed: onDelete),
-          ],
+      ),
+    );
+  }
+}
+
+class _ActionButton extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _ActionButton({
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white.withOpacity(0.4),
+      borderRadius: BorderRadius.circular(8),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(7),
+          child: Icon(icon, size: 18, color: color),
         ),
       ),
     );
