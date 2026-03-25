@@ -53,7 +53,7 @@ class MongoService {
         source: _src,
         level: 1,
       );
-      rethrow; // Lempar ke Controller agar bisa set isOffline = true
+      rethrow;
     }
   }
 
@@ -68,22 +68,30 @@ class MongoService {
     }
   }
 
-  Future<List<LogModel>> getLogs() async {
+  String _cleanId(String id) {
+    final match = RegExp(r'ObjectId\("([a-f0-9]{24})"\)').firstMatch(id);
+    if (match != null) return match.group(1)!;
+    return id;
+  }
+
+  Future<List<LogModel>> getLogs(String teamId) async {
     try {
       final DbCollection col = await _safeCollection();
 
       await LogHelper.writeLog(
-        'INFO: Fetching semua data dari Cloud...',
+        'INFO: Fetching data untuk Team: $teamId...',
         source: _src,
         level: 3,
       );
 
-      final List<Map<String, dynamic>> data = await col.find().toList();
+      final List<Map<String, dynamic>> data =
+          await col.find(where.eq('teamId', teamId)).toList();
+
       final List<LogModel> result =
           data.map((json) => LogModel.fromMap(json)).toList();
 
       await LogHelper.writeLog(
-        'INFO: ${result.length} dokumen berhasil dimuat',
+        'INFO: ${result.length} dokumen team $teamId berhasil dimuat',
         source: _src,
         level: 3,
       );
@@ -102,7 +110,15 @@ class MongoService {
   Future<void> insertLog(LogModel log) async {
     try {
       final DbCollection col = await _safeCollection();
-      await col.insertOne(log.toMap());
+
+      final map = log.toMap();
+      if (log.id != null && log.id!.isNotEmpty) {
+        map['_id'] = ObjectId.fromHexString(_cleanId(log.id!));
+      } else {
+        map['_id'] = ObjectId();
+      }
+
+      await col.insertOne(map);
 
       await LogHelper.writeLog(
         "SUCCESS: Data '${log.title}' tersimpan di Cloud",
@@ -121,12 +137,17 @@ class MongoService {
 
   Future<void> updateLog(LogModel log) async {
     try {
-      if (log.id == null) {
+      if (log.id == null || log.id!.isEmpty) {
         throw Exception('ID Log tidak ditemukan untuk proses update');
       }
 
       final DbCollection col = await _safeCollection();
-      await col.replaceOne(where.id(log.id!), log.toMap());
+
+      final map = log.toMap();
+      final objectId = ObjectId.fromHexString(_cleanId(log.id!)); // ← FIX
+      map['_id'] = objectId;
+
+      await col.replaceOne(where.id(objectId), map);
 
       await LogHelper.writeLog(
         "DATABASE: Update '${log.title}' berhasil",
@@ -143,13 +164,15 @@ class MongoService {
     }
   }
 
-  Future<void> deleteLog(ObjectId id) async {
+  Future<void> deleteLog(String id) async {
     try {
       final DbCollection col = await _safeCollection();
-      await col.remove(where.id(id));
+
+      final cleanedId = _cleanId(id); // ← FIX: strip ObjectId("...") dulu
+      await col.remove(where.id(ObjectId.fromHexString(cleanedId)));
 
       await LogHelper.writeLog(
-        'DATABASE: Hapus ID $id berhasil',
+        'DATABASE: Hapus ID $cleanedId berhasil',
         source: _src,
         level: 2,
       );

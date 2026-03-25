@@ -19,16 +19,19 @@ class _LoginViewState extends State<LoginView> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Isi semua field!")));
       return;
     }
-    if (_controller.login(_userController.text, _passController.text)) {
+    final userProfile = _controller.login(_userController.text, _passController.text);
+    if (userProfile != null) {
       Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => LogView(username: _userController.text)),
-          (route) => false, 
-        );
+        context,
+        MaterialPageRoute(builder: (context) => LogView(currentUser: userProfile)),
+        (route) => false,
+      );
     } else {
       _controller.checkLockout();
       setState(() {});
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Login Gagal! Sisa: ${_controller.remainingAttempts}")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Login Gagal! Sisa: ${_controller.remainingAttempts}")),
+      );
     }
   }
 
@@ -51,7 +54,7 @@ class _LoginViewState extends State<LoginView> {
             const Text("Selamat Datang!", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
             Text("Silakan masuk untuk melanjutkan aktivitas.", style: TextStyle(color: Colors.grey[600])),
             const SizedBox(height: 40),
-            
+
             TextField(
               controller: _userController,
               decoration: const InputDecoration(
@@ -75,7 +78,7 @@ class _LoginViewState extends State<LoginView> {
               ),
             ),
             const SizedBox(height: 30),
-            
+
             SizedBox(
               width: double.infinity,
               height: 55,
@@ -87,7 +90,10 @@ class _LoginViewState extends State<LoginView> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   elevation: 0,
                 ),
-                child: Text(_controller.isLocked ? "Terkunci (10s)" : "Masuk", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                child: Text(
+                  _controller.isLocked ? "Terkunci (10s)" : "Masuk",
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
               ),
             ),
           ],

@@ -2,23 +2,43 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 class LoginController extends ChangeNotifier {
-  final Map<String, String> _users = {
-    "admin": "123",
-    "samudra": "suiseikeren",
-    "lancelot": "pedangkeadilan",
+  final Map<String, Map<String, String>> _users = {
+    "admin": {
+      "password": "123",
+      "role": "Ketua",
+      "teamId": "TEAM_001",
+      "uid": "uid_admin",
+    },
+    "samudra": {
+      "password": "suiseikeren",
+      "role": "Anggota",
+      "teamId": "TEAM_001",
+      "uid": "uid_samudra",
+    },
+    "lancelot": {
+      "password": "pedangkeadilan",
+      "role": "Anggota",
+      "teamId": "TEAM_002",
+      "uid": "uid_lancelot",
+    },
   };
 
   int _failedAttempts = 0;
   bool isLocked = false;
 
-  bool login(String username, String password) {
-    if (_users.containsKey(username) && _users[username] == password) {
+  Map<String, String>? login(String username, String password) {
+    final userData = _users[username];
+    if (userData != null && userData['password'] == password) {
       _failedAttempts = 0;
-      return true;
+      return {
+        'username': username,
+        'role': userData['role']!,
+        'teamId': userData['teamId']!,
+        'uid': userData['uid']!,
+      };
     }
-    
     _failedAttempts++;
-    return false;
+    return null;
   }
 
   bool checkLockout() {
